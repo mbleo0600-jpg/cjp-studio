@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CJP Content Studio — Private</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Devanagari:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #ff2020;
+  --dark-red: #cc0000;
+  --black: #080808;
+  --surface: #111111;
+  --surface2: #1a1a1a;
+  --border: #222222;
+  --text: #f0f0f0;
+  --muted: #555;
+  --green: #22ff7a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--black); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; }
+
+/* GRAIN OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* LOGIN PAGE */
+#loginPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--black);
+  position: relative;
+  overflow: hidden;
+}
+
+#loginPage::after {
+  content: '🪲';
+  position: absolute;
+  font-size: 400px;
+  opacity: 0.03;
+  right: -80px;
+  bottom: -80px;
+  pointer-events: none;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--red);
+  margin: 20px;
+}
+
+.login-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+
+.login-sub {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--black);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus { border-color: var(--red); }
+
+.login-btn {
+  width: 100%;
+  background: var(--red);
+  color: white;
+  border: none;
+  padding: 14px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.login-btn:hover { background: var(--dark-red); }
+.login-btn:disabled { background: var(--border); cursor: not-allowed; }
+.login-error { color: var(--red); font-size: 12px; margin-top: 12px; display: none; }
+
+/* DASHBOARD */
+#dashboard { display: none; }
+
+.topbar {
+  background: rgba(8,8,8,0.97);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.topbar-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bug-spin { display: inline-block; animation: spin 8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 2px; color: var(--muted); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.logout-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+.main { padding: 28px 24px; max-width: 1000px; margin: 0 auto; }
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  background: var(--surface);
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab.active { background: var(--red); color: white; }
+.tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+/* GENERATE BUTTON */
+.generate-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--red);
+}
+
+.gen-btn {
+  background: var(--red);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 18px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gen-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
+.gen-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
+/* LOADING */
+.loading-bar {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  animation: flicker 1s infinite;
+}
+@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* NEWS CARDS */
+.news-grid { display: grid; gap: 16px; }
+
+.news-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  padding: 20px;
+  transition: all 0.2s;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.news-card:hover { border-color: var(--red); }
+
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.news-source {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.news-time { font-size: 10px; color: var(--muted); }
+
+.news-category {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  background: rgba(255,32,32,0.1);
+  color: var(--red);
+  border: 1px solid rgba(255,32,32,0.2);
+}
+
+.news-headline {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.news-summary {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #888;
+  margin-bottom: 14px;
+}
+
+.news-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.action-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 7px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.action-btn:hover { border-color: var(--red); color: var(--red); }
+.action-btn.copied { border-color: var(--green); color: var(--green); }
+.action-btn.generating { opacity: 0.5; cursor: not-allowed; }
+
+/* POST CARDS */
+.post-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-bottom: 20px;
+  animation: slideIn 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--red), transparent);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+.post-category {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--red);
+  color: var(--red);
+}
+
+.caption-block {
+  background: var(--black);
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.caption-lang {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.caption-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+  font-family: 'Noto Sans Devanagari', 'DM Mono', monospace;
+}
+
+.hashtags {
+  font-size: 12px;
+  color: #4a9eff;
+  margin-top: 10px;
+  line-height: 1.7;
+  word-break: break-all;
+}
+
+.post-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* IMAGE PREVIEW */
+.img-preview {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--black);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.img-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-placeholder {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 20px;
+}
+
+.img-placeholder .big-bug { font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-state .big { font-size: 60px; opacity: 0.2; margin-bottom: 16px; }
+.empty-state p { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; line-height: 2; }
+
+@media(max-width: 600px) {
+  .main { padding: 16px; }
+  .topbar { padding: 12px 16px; }
+  .news-headline { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">🪲 CJP STUDIO</div>
+    <div class="login-sub">Private Content Dashboard</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" value="Cockroachjantapartyorg@gmail.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()" id="loginBtn">ENTER THE SWARM</button>
+    <div class="login-error" id="loginError">Invalid credentials. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <span class="bug-spin">🪲</span> CJP STUDIO
+    </div>
+    <div class="topbar-right">
+      <div class="status"><div class="dot"></div> LIVE</div>
+      <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" id="tab-news" onclick="switchTab('news')">📡 News Feed</button>
+      <button class="tab" id="tab-posts" onclick="switchTab('posts')">🎨 Post Studio</button>
+    </div>
+
+    <!-- NEWS TAB -->
+    <div id="panel-news">
+      <div class="generate-bar">
+        <div class="section-title">📡 Today's CJP Intel</div>
+        <button class="gen-btn" id="newsGenBtn" onclick="generateContent('news')">
+          🔍 SCAN NOW
+        </button>
+      </div>
+      <div class="loading-bar" id="newsLoading">⏳ SCANNING LATEST CJP ACTIVITY...</div>
+      <div id="newsContent">
+        <div class="empty-state">
+          <div class="big">📡</div>
+          <p>Tap "Scan Now" to pull<br>today's CJP news & activity</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTS TAB -->
+    <div id="panel-posts" style="display:none">
+      <div class="generate-bar">
+        <div class="section-title">🎨 Ready-to-Post Content</div>
+        <button class="gen-btn" id="postsGenBtn" onclick="generateContent('posts')">
+          🪲 GENERATE POSTS
+        </button>
+      </div>
+      <div class="loading-bar" id="postsLoading">⏳ WRITING POSTS FOR THE SWARM...</div>
+      <div id="postsContent">
+        <div class="empty-state">
+          <div class="big">🎨</div>
+          <p>Tap "Generate Posts" to create<br>ready-to-post Instagram content</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// API base — change this after deployment
+const API_BASE = window.location.origin;
+let TOKEN = localStorage.getItem('cjp_token');
+
+// Check if already logged in
+window.onload = () => {
+  if (TOKEN) showDashboard();
+};
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+
+  btn.disabled = true;
+  btn.textContent = 'ENTERING...';
+  err.style.display = 'none';
+
+  try {
+    const res = await fetch(API_BASE + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.token) {
+      TOKEN = data.token;
+      localStorage.setItem('cjp_token', TOKEN);
+      showDashboard();
+    } else {
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error. Please try again.';
+    err.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'ENTER THE SWARM';
+}
+
+function showDashboard() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function logout() {
+  localStorage.removeItem('cjp_token');
+  TOKEN = null;
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-news').style.display = name === 'news' ? 'block' : 'none';
+  document.getElementById('panel-posts').style.display = name === 'posts' ? 'block' : 'none';
+}
+
+async function generateContent(type) {
+  const btn = document.getElementById(type === 'news' ? 'newsGenBtn' : 'postsGenBtn');
+  const loading = document.getElementById(type + 'Loading');
+  const content = document.getElementById(type + 'Content');
+
+  btn.disabled = true;
+  loading.style.display = 'block';
+  content.innerHTML = '';
+
+  try {
+    const res = await fetch(API_BASE + '/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + TOKEN
+      },
+      body: JSON.stringify({ type })
+    });
+
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (type === 'news') renderNews(data.items, content);
+    else renderPosts(data.items, content);
+
+  } catch(e) {
+    content.innerHTML = `<div style="color:var(--red);padding:20px;font-size:12px;border:1px solid var(--border);">Error: ${e.message}</div>`;
+  }
+
+  loading.style.display = 'none';
+  btn.disabled = false;
+}
+
+function renderNews(items, container) {
+  container.innerHTML = '<div class="news-grid">' +
+    items.map((item, i) => `
+      <div class="news-card">
+        <div class="news-meta">
+          <span class="news-source">${item.source}</span>
+          <span class="news-time">${item.time}</span>
+          <span class="news-category">${item.category}</span>
+        </div>
+        <div class="news-headline">${item.headline}</div>
+        <div class="news-summary">${item.summary}</div>
+        <div class="news-actions">
+          <button class="action-btn" onclick="copyText('${encodeURIComponent(item.headline + '\n\n' + item.summary)}', this)">📋 COPY</button>
+          <button class="action-btn" id="newsimg-${i}" onclick="generateNewsImage(${i}, '${encodeURIComponent(item.imagePrompt)}', '${encodeURIComponent(item.headline)}')">🎨 GENERATE IMAGE</button>
+        </div>
+        <div id="newsimgContainer-${i}" style="margin-top:12px;display:none;"></div>
+      </div>
+    `).join('') + '</div>';
+}
+
+function renderPosts(items, container) {
+  container.innerHTML = items.map((item, i) => `
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-title">${item.title}</div>
+        <div class="post-category">${item.category}</div>
+      </div>
+
+      <div class="img-preview" id="postimg-${i}">
+        <div class="img-placeholder">
+          <span class="big-bug">🪲</span>
+          <button class="gen-btn" style="margin:0 auto;" onclick="generatePostImage(${i}, '${encodeURIComponent(item.imagePrompt)}')">🎨 GENERATE IMAGE</button>
+        </div>
+      </div>
+
+      <div class="caption-block">
+        <div class="caption-lang">🇮🇳 Hindi</div>
+        <div class="caption-text">${item.hindi_caption}</div>
+      </div>
+      <div class="caption-block">
+        <div class="caption-lang">🇬🇧 English</div>
+        <div class="caption-text">${item.english_caption}</div>
+      </div>
+      <div class="hashtags">${item.hashtags}</div>
+
+      <div class="post-actions">
+        <button class="action-btn" onclick="copyText('${encodeURIComponent(item.hindi_caption + '\n\n' + item.hashtags)}', this)">📋 COPY HINDI</button>
+        <button class="action-btn" onclick="copyText('${encodeURIComponent(item.english_caption + '\n\n' + item.hashtags)}', this)">📋 COPY ENGLISH</button>
+        <button class="action-btn" onclick="copyText('${encodeURIComponent(item.hindi_caption + '\n\n' + item.english_caption + '\n\n' + item.hashtags)}', this)">📋 COPY ALL</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function generatePostImage(idx, promptEncoded) {
+  const prompt = decodeURIComponent(promptEncoded);
+  const container = document.getElementById('postimg-' + idx);
+  container.innerHTML = '<div class="img-placeholder"><span class="big-bug">⏳</span><span style="letter-spacing:2px;font-size:11px;">GENERATING IMAGE...</span></div>';
+
+  try {
+    // Use Pollinations AI — completely free, no API key needed
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', dark political poster, red black white, dramatic, high quality')}&width=1080&height=1080&nologo=true`;
+    const img = new Image();
+    img.onload = () => {
+      container.innerHTML = `
+        <img src="${imageUrl}" alt="Generated image" style="width:100%;height:100%;object-fit:cover;">
+        <button class="action-btn" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.8);" onclick="downloadImage('${imageUrl}', 'cjp-post-${idx}.jpg')">⬇️ SAVE</button>
+      `;
+    };
+    img.onerror = () => {
+      container.innerHTML = '<div class="img-placeholder"><span class="big-bug">❌</span><span>Image failed. Try again.</span></div>';
+    };
+    img.src = imageUrl;
+  } catch(e) {
+    container.innerHTML = '<div class="img-placeholder"><span>Error generating image</span></div>';
+  }
+}
+
+async function generateNewsImage(idx, promptEncoded, headlineEncoded) {
+  const prompt = decodeURIComponent(promptEncoded);
+  const btn = document.getElementById('newsimg-' + idx);
+  const container = document.getElementById('newsimgContainer-' + idx);
+
+  btn.textContent = '⏳ GENERATING...';
+  btn.classList.add('generating');
+  container.style.display = 'block';
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:2px;border:1px solid var(--border);">⏳ GENERATING IMAGE...</div>';
+
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', dark political poster, red black white, dramatic')}&width=1080&height=1080&nologo=true`;
+
+  const img = new Image();
+  img.onload = () => {
+    container.innerHTML = `
+      <div style="position:relative;">
+        <img src="${imageUrl}" style="width:100%;display:block;">
+        <button class="action-btn" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.9);" onclick="downloadImage('${imageUrl}', 'cjp-news.jpg')">⬇️ SAVE IMAGE</button>
+      </div>
+    `;
+    btn.textContent = '✓ GENERATED';
+    btn.classList.remove('generating');
+  };
+  img.onerror = () => {
+    container.innerHTML = '<div style="padding:10px;color:var(--red);font-size:11px;">Image failed. Try again.</div>';
+    btn.textContent = '🎨 RETRY IMAGE';
+    btn.classList.remove('generating');
+  };
+  img.src = imageUrl;
+}
+
+function downloadImage(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function copyText(encoded, btn) {
+  const text = decodeURIComponent(encoded);
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ COPIED!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

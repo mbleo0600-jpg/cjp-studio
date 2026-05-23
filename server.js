@@ -105,6 +105,25 @@ Return ONLY a JSON array, no markdown. Each item:
   }
 });
 
+app.post('/api/custom-post', auth, async (req, res) => {
+  const { newsText } = req.body;
+  if (!newsText) return res.status(400).json({ error: 'No news text provided' });
+  try {
+    const prompt = `Create Instagram captions in Hindi and English from this news: ${newsText}. Return JSON with hindi_caption, english_caption, and hashtags.`;
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await response.json();
+    const text = data.content[0].text;
+    const s = text.indexOf('{'), e = text.lastIndexOf('}');
+    const post = JSON.parse(text.slice(s, e + 1));
+    res.json({ post });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Serve frontend for all other routes
 app.get('*', (req, res) => {
 res.sendFile(__dirname + '/public-index.html');

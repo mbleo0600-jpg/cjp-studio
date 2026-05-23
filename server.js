@@ -9,7 +9,7 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-// static removed//
+app.use(express.static('public'));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cjp-secret-2026';
 const ANTHROPIC_KEY = process.env.ANTHROPIC_KEY || '';
